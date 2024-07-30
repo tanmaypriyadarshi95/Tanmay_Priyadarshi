@@ -1,0 +1,138 @@
+---
+title: "ARIMA_MODEL"
+author: "20MIA1081_20MIA1122"
+date: "2024-03-05"
+output: html_document
+---
+
+
+
+```{r }
+library(forecast)
+library(tseries)
+
+
+```
+
+```{r }
+btc_data <- read.csv("C://Users//kumar//OneDrive//Documents//BTC-USD (1).csv"sss)
+btc_data$Date <- as.Date(btc_data$Date)
+btc_data <- na.omit(btc_data)  # Remove NA values
+
+
+
+```
+
+
+```{r }
+btc_data$Close <- as.numeric(as.character(btc_data$Close))
+
+
+
+```
+```{r }
+# Ensure the 'tseries' package is loaded
+library(tseries)
+
+# Remove NA values from your data
+btc_data <- na.omit(btc_data)
+
+# Convert 'Close' to numeric if it's not already
+btc_data$Close <- as.numeric(btc_data$Close)
+
+# Now run the ADF test
+adf_test_result <- adf.test(btc_data$Close, alternative = "stationary")
+
+# Print the result
+print(adf_test_result)
+
+
+
+```
+
+```{r }
+btc_diff <- diff(btc_data$Close, differences = 1)
+plot(btc_diff, type="l", xlab="Date", ylab="Differenced Close Price", main="Differenced BTC Close Price Over Time")
+
+
+
+
+```
+
+The graph in the image shows the differenced closing prices of Bitcoin (BTC) over time. 
+
+The graph is plotting changes in the closing price of Bitcoin from one time point to the next. It is not the actual price but the difference from one price to the next. For instance, if the closing price of Bitcoin was $10,000 one day and $10,050 the next, the differenced price would be $50 for that day.
+
+The negative values indicate days where the closing price of Bitcoin was lower than the previous day. A negative differenced value means the price dropped. Conversely, positive values would indicate days where the price increased compared to the previous day.
+
+positive and negative values is normal in financial data, reflecting the day-to-day volatility and price changes in the cryptocurrency market. The graph helps to visualize this volatility and is often used to prepare the data for further analysis, such as predicting future prices using statistical models.
+
+
+```{r }
+auto_fit <- auto.arima(btc_data$Close, seasonal = FALSE)  # Set seasonal=FALSE for non-seasonal data
+summary(auto_fit)
+
+
+
+
+```
+
+```{r }
+arima_fit <- arima(btc_data$Close, order = c(auto_fit$arma[1], auto_fit$arma[6], auto_fit$arma[2]))
+
+
+
+
+```
+
+#The table represents the forecasted values from an ARIMA model, along with the associated prediction intervals for those forecasts:
+
+#Point Forecast: This is the estimated value that the model predicts for the future points in the time series. Here, it appears to be a flat line which suggests that the model predicts no change from the last observed value, a characteristic of a random walk or an ARIMA(0,1,0) model, for instance.
+
+#Lo 80 and Hi 80: These columns give the lower and upper bounds of an 80% prediction interval. This means that there is an 80% probability that the true future value will fall within this range. A narrower interval indicates more certainty in the predictions.
+
+#Lo 95 and Hi 95: Similarly, these columns provide the lower and upper bounds of a 95% prediction interval. There is a 95% probability that the true future value will fall within this range. The 95% interval is wider than the 80% interval, reflecting the increased certainty that the future value will lie within it.
+
+#From the values you've shared, it seems that the model is predicting a consistent Point Forecast for each future time step (all the same at 62,050.49). This is consistent with the nature of an ARIMA(0,1,0) model where the future value is predicted to be the same as the last observed value due to the lack of trend or seasonality components.
+
+#The widening of the prediction intervals as you go further into the future (noticed by the increasing distance between the lower and upper bounds) represents increasing uncertainty in the forecast the further out you go. This is typical for most time series forecasts - the longer the forecast horizon, the less certain the model is about the prediction, which is reflected in wider confidence intervals.
+```{r }
+future_steps <- 30  # For example, forecast the next 30 days
+forecasted_values <- forecast(arima_fit, h = future_steps)
+forecasted_values
+
+
+
+
+```
+
+
+
+```{r }
+
+
+
+
+
+
+
+
+
+
+plot(forecasted_values)ss
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

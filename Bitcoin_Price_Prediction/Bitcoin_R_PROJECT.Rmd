@@ -1,0 +1,263 @@
+---
+title: "Bitcoin_Price_Prediction"
+author: "20MIA1081_20MIA1122"
+date: "2024-03-02"
+output: html_document
+---
+
+
+
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(scales)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r }
+# 1. Loading the Data
+btc_data <- read.csv("C://Users//kumar//OneDrive//Documents//BTC-USD (2).csv")
+```
+
+
+
+
+```{r }
+btc_data
+```
+```{r }
+# 2. Summary Statistics
+summary(btc_data)
+```
+```{r }
+# 3. Handling Missing Values
+btc_data <- na.omit(btc_data)  # Removes rows with missing values
+
+```
+
+
+```{r }
+# Check for NA values in each column and sum them up
+na_counts <- sapply(btc_data, function(x) sum(is.na(x)))
+
+# Print the counts of NA values per column
+print(na_counts)
+
+```
+
+```{r }
+# 3. Date Parsing and Indexing
+btc_data$Date <- as.Date(btc_data$Date, format="%Y-%m-%d")
+btc_data <- btc_data %>% arrange(Date) # Ensure data is sorted by date
+btc_data
+```
+
+
+```{r }
+ 
+showOpenCloseBar <- function(df, year) {
+  df %>%
+    mutate(Month = month(Date, label = TRUE, abbr = TRUE)) %>%
+    group_by(Month) %>%
+    summarise(Open = mean(Open, na.rm = TRUE), Close = mean(Close, na.rm = TRUE)) %>%
+    pivot_longer(-Month, names_to = "PriceType", values_to = "Price") %>%
+    ggplot(aes(x = Month, y = Price, fill = PriceType)) +
+    geom_bar(stat = "identity", position = position_dodge()) +
+    scale_fill_manual(values = c("Open" = "crimson", "Close" = "lightsalmon")) +
+    labs(title = sprintf("Monthwise Comparison of Bitcoin Open and Close Prices in %s", year), y = "Average Price", x = "Month") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  print(ggplot2::last_plot())
+}
+
+```
+
+```{r }
+# Helper function to plot High and Low Prices
+showHighLowBar <- function(df, year) {
+  df %>%
+    mutate(Month = month(Date, label = TRUE, abbr = TRUE)) %>%
+    group_by(Month) %>%
+    summarise(High = max(High, na.rm = TRUE), Low = min(Low, na.rm = TRUE)) %>%
+    pivot_longer(-Month, names_to = "PriceType", values_to = "Price") %>%
+    ggplot(aes(x = Month, y = Price, fill = PriceType)) +
+    geom_bar(stat = "identity", position = position_dodge()) +
+    scale_fill_manual(values = c("High" = "rgb(0,153,204)", "Low" = "rgb(255,128,0)")) +
+    labs(title = sprintf("Monthwise Comparison of Bitcoin High and Low Prices in %s", year), y = "Price", x = "Month") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  print(ggplot2::last_plot())
+}
+```
+
+```{r }
+# Month-wise comparison between High and Low prices
+showHighLowBar <- function(df, year) {
+  df %>% 
+    mutate(Month = month(Date, label = TRUE)) %>%
+    group_by(Month) %>%
+    summarise(High = max(High, na.rm = TRUE), Low = min(Low, na.rm = TRUE)) %>%
+    gather(key = "Type", value = "Price", -Month) %>%
+    ggplot(aes(x = Month, y = Price, fill = Type)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    scale_fill_manual(values = c("High" = "rgb(0,153,204)", "Low" = "rgb(255,128,0)")) +
+    theme_minimal() +
+    labs(title = paste("Monthwise comparison between Bitcoin high and low price for year", year),
+         y = "Price", x = "Month") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+```
+
+```{r }
+# Define the years and date ranges
+years <- list(
+  '2014' = c('2014-09-17', '2014-12-31'),
+  '2015' = c('2015-01-01', '2015-12-31'),
+  '2016' = c('2016-01-01', '2016-12-31'),
+  '2017' = c('2017-01-01', '2017-12-31'),
+  '2018' = c('2018-01-01', '2018-12-31'),
+  '2019' = c('2019-01-01', '2019-12-31'),
+  '2020' = c('2020-01-01', '2020-12-31'),
+  '2021' = c('2021-01-01', '2021-12-31'),
+  '2022' = c('2022-01-01', '2022-12-31'),
+  '2023' = c('2023-01-01', '2023-12-31'),
+  '2024' = c('2024-01-01', '2024-03-04') # Adjust the last date according to your data
+)
+
+```
+
+```{r }
+
+# Assuming btc_data is already loaded
+# Convert the necessary columns from character to numeric
+btc_data <- btc_data %>%
+  mutate(across(c(Open, High, Low, Close, Adj.Close, Volume), as.numeric))
+
+# Helper function to plot Open and Close Prices
+showOpenCloseBar <- function(df, year) {
+  df %>%
+    mutate(Month = month(Date, label = TRUE, abbr = TRUE)) %>%
+    group_by(Month) %>%
+    summarise(Open = mean(Open, na.rm = TRUE), Close = mean(Close, na.rm = TRUE)) %>%
+    pivot_longer(-Month, names_to = "PriceType", values_to = "Price") %>%
+    ggplot(aes(x = Month, y = Price, fill = PriceType)) +
+    geom_bar(stat = "identity", position = position_dodge()) +
+    scale_fill_manual(values = c("Open" = "#DC143C", "Close" = "#FFA07A")) +
+    labs(title = sprintf("Monthwise Comparison of Bitcoin Open and Close Prices in %s", year), y = "Average Price", x = "Month") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  print(ggplot2::last_plot())
+}
+
+# Helper function to plot High and Low Prices
+showHighLowBar <- function(df, year) {
+  df %>%
+    mutate(Month = month(Date, label = TRUE, abbr = TRUE)) %>%
+    group_by(Month) %>%
+    summarise(High = max(High, na.rm = TRUE), Low = min(Low, na.rm = TRUE)) %>%
+    pivot_longer(-Month, names_to = "PriceType", values_to = "Price") %>%
+    ggplot(aes(x = Month, y = Price, fill = PriceType)) +
+    geom_bar(stat = "identity", position = position_dodge()) +
+    scale_fill_manual(values = c("High" = "#0099CC", "Low" = "#FF8000")) +
+    labs(title = sprintf("Monthwise Comparison of Bitcoin High and Low Prices in %s", year), y = "Price", x = "Month") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  print(ggplot2::last_plot())
+}
+
+# Assuming years list is defined as in the previous code snippet
+# Loop through the years and plot
+for(year in names(years)) {
+  start_date <- years[[year]][1]
+  end_date <- years[[year]][2]
+  yearwise_data <- btc_data %>% filter(Date >= as.Date(start_date) & Date < as.Date(end_date))
+  
+  # Convert characters to numeric for plotting
+  yearwise_data <- yearwise_data %>%
+    mutate(across(c(Open, High, Low, Close, Adj.Close, Volume), as.numeric))
+  
+  # Plot Open and Close Prices
+  showOpenCloseBar(yearwise_data, year)
+  
+  # Plot High and Low Prices
+  showHighLowBar(yearwise_data, year)
+}
+
+```
+
+
+#Opening and closing prices of bitcoin month -wise from year 2014 to 2024
+#High and low prices of bitcoin month wise from year 2014 to 2024.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

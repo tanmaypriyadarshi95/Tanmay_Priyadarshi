@@ -1,0 +1,65 @@
+---
+title: "simple moving average"
+author: "20MIA1081_20MIA1122"
+date: "2024-03-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+btc_data <- read.csv("C://Users//kumar//OneDrive//Documents//BTC-USD (2).csv")
+```
+
+
+
+```{r }
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(tidyquant) # for financial analysis and SMA calculation
+library(readr) # to read CSV files
+```
+
+
+```{r }
+library(dplyr)
+library(ggplot2)
+library(readr)
+
+# Assuming btc_data has been read and preprocessed
+btc_data <- read_csv("C://Users//kumar//OneDrive//Documents//BTC-USD (1).csv") %>%
+  mutate(Date = as.Date(Date)) %>%
+  arrange(Date)
+
+# Manually calculate the 50-day SMA to avoid 'i' or 'j' out of range errors
+btc_data$SMA_50 <- stats::filter(btc_data$Close, rep(1/50, 50), sides=1)
+
+# Splitting the data into training and testing sets (80% train, 20% test)
+split_index <- floor(nrow(btc_data) * 0.8)
+train_data <- btc_data[1:split_index, ]
+test_data <- btc_data[(split_index + 1):nrow(btc_data), ]
+
+# Removing NA values from the test_data to ensure accurate RMSE calculation
+test_data <- na.omit(test_data)
+
+# RMSE calculation
+rmse <- sqrt(mean((test_data$Close - test_data$SMA_50)^2))
+
+# Plotting
+ggplot() +
+  geom_line(data = train_data, aes(x = Date, y = Close), color = "blue", alpha = 0.5) +
+  geom_line(data = test_data, aes(x = Date, y = Close), color = "orange", alpha = 0.5) +
+  geom_line(data = test_data, aes(x = Date, y = SMA_50), color = "green", linetype = "dashed") +
+  labs(title = "Bitcoin Price Prediction using SMA", x = "Date", y = "Price") +
+  theme_minimal()
+
+# Output RMSE value
+print(paste("RMSE:", rmse))
+
+```
+#Blue line: This is most likely the actual historical price of Bitcoin. It is showing the real price data up until the last recorded point.
+
+#Orange line: This likely represents the predicted price of Bitcoin according to the SMA model. The forecast extends beyond the historical data, into the future.
+
+#Green dashed line: This line often represents a confidence interval or prediction interval. In forecasting, this is used to indicate the uncertainty in the prediction, showing where the actual future points are likely to fall. Given the context, it's probably showing a more optimistic prediction or the upper bound of the price forecast.
+
+
